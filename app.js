@@ -8,6 +8,10 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'index.html'))
 
 });
+app.get('/data', function (req, res) {
+ 
+
+});
 io.on('connection', (socket) => {
   console.log('socket connected')
   socket.on('disconnect', () => {
