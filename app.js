@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
+var Sqlite = require('sqlite3')
 
 var io = require('socket.io')(http);
 var path = require('path')
@@ -13,6 +14,10 @@ var config = {
   var wilddogRef = wilddog.sync();
   var apiInfo = wilddogRef.child("apiInfo")
   // apiInfo.set({});
+
+
+var db=new Sqlite.Database('./test.db',function(){
+})
 
 
 var static={
@@ -38,6 +43,17 @@ var info={
   sum:''
 }
 
+ apiInfo.orderByKey().limitToLast(1).on("child_added",function(snapshot,prev){
+  console.log(snapshot.val());
+  console.log("the previous key is",prev)
+  prev=snapshot.val()
+  db.run(`INSERT INTO api_logs VALUES ('${prev.date}','${prev.status}','${prev.name}','${prev.params}','${prev.diff}','${prev.url}','${prev.deviceId}')`,function(res){
+    console.log(res)
+  })
+
+  
+})
+
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
@@ -59,18 +75,18 @@ app.get('/data', function (req, res) {
   }
   res.end('ok')
 });
+
+app.get('/dtu', function (req, res) {
+  res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});
+  console.log(req.query);
+  if(req.query){
+    var findR=  static.find(req.query.id,info.data)
+    res.end(JSON.stringify({data:findR,sum:findR.length}))
+  }
+});
 app.get('/dataOut', function (req, res) {
   res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});
-  apiInfo.once("value").then(function(snapshot){
-    console.info();
-    var data =snapshot.val()
-    info.data=data;
-    info.sum=static.sum(data)
-    res.end(JSON.stringify({sum: info.sum,data:data}))
-}).catch(function(err){
-    console.error(err);
-})
- 
+  res.end(JSON.stringify({sum: info.sum,data:info.data,}))
 });
 io.on('connection', (socket) => {
   console.log('socket connected')
