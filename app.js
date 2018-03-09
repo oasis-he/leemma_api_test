@@ -1,7 +1,20 @@
 var express = require('express');
 var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var fs = require('fs');
+var http = require('http');
+var https = require('https');
+
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer({
+    key: fs.readFileSync('./cert/privatekey.pem', 'utf8'), 
+    cert: fs.readFileSync('./cert/certificate.crt', 'utf8')
+}, app);
+
+// var http = require('http').Server(app);
+
+
+
+var io = require('socket.io')(httpServer);
 var path = require('path')
 
 var wilddog = require('wilddog')
@@ -92,8 +105,13 @@ io.on('connection', (socket) => {
   });
 });
 
-app.set('port', process.env.PORT || 3000);
+var PORT = 80;
+var SSLPORT = 443;
 
-var server = http.listen(app.get('port'), function() {
-  console.log('start at port:' + server.address().port);
+
+httpServer.listen(PORT, function() {
+  console.log('HTTP Server is running on: http://localhost:%s', PORT);
+});
+httpsServer.listen(SSLPORT, function() {
+  console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);
 });
