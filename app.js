@@ -6,8 +6,8 @@ var https = require('https');
 
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer({
-    key: fs.readFileSync('./cert/privatekey.pem', 'utf8'), 
-    cert: fs.readFileSync('./cert/certificate.crt', 'utf8')
+    key: fs.readFileSync('./https/privatekey.pem', 'utf8'), 
+    cert: fs.readFileSync('./https/certificate.crt', 'utf8')
 }, app);
 
 // var http = require('http').Server(app);
